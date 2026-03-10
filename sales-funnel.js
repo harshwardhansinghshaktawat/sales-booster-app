@@ -68,6 +68,8 @@ class SalesFunnelElement extends HTMLElement {
   }
 
   attributeChangedCallback(name, oldVal, newVal) {
+    console.log(`🔔 Attribute changed: ${name}`, { oldVal, newVal });
+    
     if (name === 'product-data' && newVal && newVal !== oldVal) {
       try {
         this.product = JSON.parse(newVal);
@@ -103,18 +105,29 @@ class SalesFunnelElement extends HTMLElement {
     }
     
     if (name === 'funnel-action' && newVal) {
+      console.log('🎬🎬🎬 FUNNEL ACTION ATTRIBUTE CHANGED 🎬🎬🎬');
+      console.log('   Old value:', oldVal);
+      console.log('   New value:', newVal);
+      
       // Only process if oldVal is different (first time set, not the removal)
       if (oldVal !== newVal) {
         console.log('🎬 Funnel action received:', newVal);
+        console.log('   Current step before action:', this.currentStep);
+        console.log('   Upsell products available:', this.upsellProducts?.length || 0);
         
         if (newVal === 'start-upsells') {
+          console.log('   → Calling startUpsells()');
           this.startUpsells();
         } else if (newVal === 'next-step') {
+          console.log('   → Calling nextStep()');
           this.nextStep();
         }
         
         // Clear the attribute to allow re-triggering
+        console.log('   → Removing funnel-action attribute');
         this.removeAttribute('funnel-action');
+      } else {
+        console.log('⏭️ Skipping - oldVal === newVal');
       }
     }
   }
