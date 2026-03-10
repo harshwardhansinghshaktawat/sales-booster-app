@@ -85,8 +85,10 @@ class SalesFunnelElement extends HTMLElement {
       try {
         this.upsellProducts = JSON.parse(newVal);
         console.log('🎁 Upsell products loaded:', this.upsellProducts.length);
+        console.log('   Products:', this.upsellProducts.map(p => p.name));
       } catch (error) {
         console.error('Error parsing upsell data:', error);
+        this.upsellProducts = [];
       }
     }
     
@@ -100,19 +102,20 @@ class SalesFunnelElement extends HTMLElement {
       }
     }
     
-    if (name === 'funnel-action' && newVal && newVal !== oldVal) {
-      console.log('🎬 Funnel action received:', newVal);
-      
-      if (newVal === 'start-upsells') {
-        this.startUpsells();
-      } else if (newVal === 'next-step') {
-        this.nextStep();
-      }
-      
-      // Clear the attribute after processing
-      setTimeout(() => {
+    if (name === 'funnel-action' && newVal) {
+      // Only process if oldVal is different (first time set, not the removal)
+      if (oldVal !== newVal) {
+        console.log('🎬 Funnel action received:', newVal);
+        
+        if (newVal === 'start-upsells') {
+          this.startUpsells();
+        } else if (newVal === 'next-step') {
+          this.nextStep();
+        }
+        
+        // Clear the attribute to allow re-triggering
         this.removeAttribute('funnel-action');
-      }, 100);
+      }
     }
   }
 
@@ -1060,14 +1063,22 @@ class SalesFunnelElement extends HTMLElement {
   }
 
   renderUpsellStep() {
+    console.log('🎁 Rendering upsell step');
+    console.log('   Current step:', this.currentStep);
+    console.log('   Upsell products array:', this.upsellProducts);
+    
     const stepNumber = parseInt(this.currentStep.replace('upsell', '')) - 1;
+    console.log('   Accessing index:', stepNumber);
+    
     const upsellProduct = this.upsellProducts[stepNumber];
     
     if (!upsellProduct) {
-      console.log('No more upsells, redirecting...');
+      console.log('❌ No product at index', stepNumber, '- completing upsells');
       this.completeUpsells();
       return;
     }
+    
+    console.log('✅ Rendering upsell product:', upsellProduct.name);
 
     const hasDiscount = upsellProduct.priceData?.formatted?.discountedPrice && 
                         upsellProduct.priceData?.formatted?.discountedPrice !== upsellProduct.priceData?.formatted?.price;
@@ -1271,13 +1282,25 @@ class SalesFunnelElement extends HTMLElement {
   }
 
   nextStep() {
+    console.log('🔄 NextStep called');
+    console.log('   Current step:', this.currentStep);
+    console.log('   Total upsell products:', this.upsellProducts.length);
+    
     const currentUpsellNum = parseInt(this.currentStep.replace('upsell', '') || '0');
     const nextUpsellNum = currentUpsellNum + 1;
     
+    console.log('   Current upsell num:', currentUpsellNum);
+    console.log('   Next upsell num:', nextUpsellNum);
+    
+    // Check if there's another upsell to show
+    // nextUpsellNum is 1-based (upsell1, upsell2, upsell3)
+    // array length tells us how many products we have
     if (nextUpsellNum <= this.upsellProducts.length) {
+      console.log('   ✅ Moving to upsell', nextUpsellNum);
       this.currentStep = `upsell${nextUpsellNum}`;
       this.render();
     } else {
+      console.log('   ✅ No more upsells, completing funnel');
       this.completeUpsells();
     }
   }
@@ -1342,10 +1365,15 @@ class SalesFunnelElement extends HTMLElement {
   }
 
   startUpsells() {
+    console.log('🚀 Starting upsell sequence');
+    console.log('   Upsell products available:', this.upsellProducts.length);
+    
     if (this.upsellProducts.length > 0) {
+      console.log('   ✅ Starting with upsell1');
       this.currentStep = 'upsell1';
       this.render();
     } else {
+      console.log('   ⚠️ No upsell products, completing funnel');
       this.completeUpsells();
     }
   }
