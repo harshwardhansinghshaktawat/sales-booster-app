@@ -1,4 +1,4 @@
-class SalesFunnelEnhancedElement extends HTMLElement {
+class SalesFunnelCouponElement extends HTMLElement {
   constructor() {
     super();
     this.product = null;
@@ -6,32 +6,26 @@ class SalesFunnelEnhancedElement extends HTMLElement {
     this.selectedOptions = {};
     this.quantity = 1;
     this.currentImageIndex = 0;
-    this.currentStep = 'product'; // 'product', 'upsell1', 'upsell2', 'upsell3'
+    this.currentStep = 'product';
     this.acceptedUpsells = [];
-    this.discountCodes = {}; // Will be populated from backend
+    this.couponCodes = {}; // From panel text input
     
-    // Default style props
     this.styleProps = {
-      // Colors
-      color1: '#ffffff',        // Primary background
-      color2: '#f8f9fa',        // Secondary background
-      color3: '#e5e7eb',        // Border color
-      color4: '#3b82f6',        // Primary accent
-      color5: '#2563eb',        // Hover accent
-      color6: '#1f2937',        // Text primary
-      color7: '#6b7280',        // Text secondary
-      color8: '#111827',        // Price color
-      color9: '#10b981',        // Success/Accept color
-      color10: '#ef4444',       // Decline color
-      color11: 'rgba(0,0,0,0.1)', // Shadow color
-      color12: '#fbbf24',       // Star/highlight color
-      
-      // Sliders
-      slider1: '12',            // Card radius
-      slider2: '16',            // Spacing
-      slider3: '16',            // Font size
-      
-      // Text fields - Product Page
+      color1: '#ffffff',
+      color2: '#f8f9fa',
+      color3: '#e5e7eb',
+      color4: '#3b82f6',
+      color5: '#2563eb',
+      color6: '#1f2937',
+      color7: '#6b7280',
+      color8: '#111827',
+      color9: '#10b981',
+      color10: '#ef4444',
+      color11: 'rgba(0,0,0,0.1)',
+      color12: '#fbbf24',
+      slider1: '12',
+      slider2: '16',
+      slider3: '16',
       text1: 'Premium Product',
       text2: 'Experience Excellence',
       text3: 'Add to Cart',
@@ -41,8 +35,6 @@ class SalesFunnelEnhancedElement extends HTMLElement {
       text7: 'Quick delivery',
       text8: '30-Day Returns',
       text9: 'Risk-free guarantee',
-      
-      // Text fields - Upsell Step
       text10: '🎉 Wait! Special Offer Just For You',
       text11: 'Complete your order with this amazing deal',
       text12: 'Yes! Add This To My Order',
@@ -54,10 +46,7 @@ class SalesFunnelEnhancedElement extends HTMLElement {
       text18: '⚡ Limited Time Offer',
       text19: 'Only available during checkout',
       text20: 'One-Time Offer',
-      
-      // Dropdown options
-      dropdown1: 'modern',      // Color preset
-      dropdown2: 'standard'     // Funnel type
+      dropdown1: 'modernBlue'
     };
   }
 
@@ -66,16 +55,13 @@ class SalesFunnelEnhancedElement extends HTMLElement {
   }
 
   static get observedAttributes() {
-    return ['product-data', 'upsell-data', 'style-props', 'funnel-action', 'discount-codes'];
+    return ['product-data', 'upsell-data', 'style-props', 'funnel-action', 'coupon-codes'];
   }
 
   attributeChangedCallback(name, oldVal, newVal) {
-    console.log(`🔔 Attribute changed: ${name}`, { oldVal, newVal });
-    
     if (name === 'product-data' && newVal && newVal !== oldVal) {
       try {
         this.product = JSON.parse(newVal);
-        console.log('📦 Main product loaded:', this.product?.name);
         this.selectedOptions = {};
         this.quantity = 1;
         this.currentStep = 'product';
@@ -88,21 +74,18 @@ class SalesFunnelEnhancedElement extends HTMLElement {
     if (name === 'upsell-data' && newVal && newVal !== oldVal) {
       try {
         this.upsellProducts = JSON.parse(newVal);
-        console.log('🎁 Upsell products loaded:', this.upsellProducts.length);
-        console.log('   Products:', this.upsellProducts.map(p => p.name));
       } catch (error) {
         console.error('Error parsing upsell data:', error);
         this.upsellProducts = [];
       }
     }
     
-    if (name === 'discount-codes' && newVal && newVal !== oldVal) {
+    if (name === 'coupon-codes' && newVal && newVal !== oldVal) {
       try {
-        this.discountCodes = JSON.parse(newVal);
-        console.log('💰 Discount codes loaded:', Object.keys(this.discountCodes));
+        this.couponCodes = JSON.parse(newVal);
       } catch (error) {
-        console.error('Error parsing discount codes:', error);
-        this.discountCodes = {};
+        console.error('Error parsing coupon codes:', error);
+        this.couponCodes = {};
       }
     }
     
@@ -117,29 +100,16 @@ class SalesFunnelEnhancedElement extends HTMLElement {
     }
     
     if (name === 'funnel-action' && newVal) {
-      console.log('🎬🎬🎬 FUNNEL ACTION ATTRIBUTE CHANGED 🎬🎬🎬');
-      console.log('   Old value:', oldVal);
-      console.log('   New value:', newVal);
-      
       if (oldVal !== newVal) {
         const actionType = newVal.split('-').slice(0, -1).join('-') || newVal;
         
-        console.log('🎬 Funnel action received:', actionType);
-        console.log('   Current step before action:', this.currentStep);
-        console.log('   Upsell products available:', this.upsellProducts?.length || 0);
-        
         if (actionType === 'start-upsells') {
-          console.log('   → Calling startUpsells()');
           this.startUpsells();
         } else if (actionType === 'next-step') {
-          console.log('   → Calling nextStep()');
           this.nextStep();
         }
         
-        console.log('   → Removing funnel-action attribute');
         this.removeAttribute('funnel-action');
-      } else {
-        console.log('⏭️ Skipping - oldVal === newVal');
       }
     }
   }
@@ -181,7 +151,6 @@ class SalesFunnelEnhancedElement extends HTMLElement {
         display: none !important;
       }
       
-      /* ========== PRODUCT PAGE STEP ========== */
       .product-step {
         max-width: 1200px;
         margin: 0 auto;
@@ -548,10 +517,6 @@ class SalesFunnelEnhancedElement extends HTMLElement {
         box-shadow: 0 12px 32px ${color4}60;
       }
       
-      .cta-button:active {
-        transform: translateY(-1px);
-      }
-      
       .error-message {
         background: #fee2e2;
         color: ${color10};
@@ -569,7 +534,6 @@ class SalesFunnelEnhancedElement extends HTMLElement {
         animation: shake 0.4s ease;
       }
       
-      /* ========== UPSELL STEPS ========== */
       .upsell-step {
         max-width: 900px;
         margin: 0 auto;
@@ -690,6 +654,46 @@ class SalesFunnelEnhancedElement extends HTMLElement {
         font-weight: 700;
       }
       
+      .coupon-unlock-section {
+        background: linear-gradient(135deg, ${color12}20 0%, ${color12}10 100%);
+        padding: ${spacing * 2}px;
+        border-radius: ${radius}px;
+        margin-bottom: ${spacing * 3}px;
+        border: 2px solid ${color12};
+        text-align: center;
+      }
+      
+      .coupon-unlock-title {
+        font-size: ${fontSize + 4}px;
+        font-weight: 800;
+        color: ${color6};
+        margin-bottom: ${spacing}px;
+      }
+      
+      .coupon-code-display {
+        background: ${color1};
+        padding: ${spacing * 2}px;
+        border-radius: ${radius}px;
+        margin-top: ${spacing}px;
+        border: 2px dashed ${color4};
+      }
+      
+      .coupon-code-label {
+        font-size: ${fontSize - 2}px;
+        color: ${color7};
+        margin-bottom: ${spacing / 2}px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+      
+      .coupon-code-value {
+        font-size: ${fontSize * 1.8}px;
+        font-weight: 800;
+        color: ${color4};
+        font-family: 'Courier New', monospace;
+        letter-spacing: 2px;
+      }
+      
       .benefits-section {
         background: linear-gradient(135deg, ${color4}10 0%, ${color4}05 100%);
         padding: ${spacing * 2}px;
@@ -755,46 +759,6 @@ class SalesFunnelEnhancedElement extends HTMLElement {
         color: ${color10};
       }
       
-      .discount-unlock-section {
-        background: linear-gradient(135deg, ${color12}20 0%, ${color12}10 100%);
-        padding: ${spacing * 2}px;
-        border-radius: ${radius}px;
-        margin-bottom: ${spacing * 3}px;
-        border: 2px solid ${color12};
-        text-align: center;
-      }
-      
-      .discount-unlock-title {
-        font-size: ${fontSize + 4}px;
-        font-weight: 800;
-        color: ${color6};
-        margin-bottom: ${spacing}px;
-      }
-      
-      .discount-code-display {
-        background: ${color1};
-        padding: ${spacing * 2}px;
-        border-radius: ${radius}px;
-        margin-top: ${spacing}px;
-        border: 2px dashed ${color4};
-      }
-      
-      .discount-code-label {
-        font-size: ${fontSize - 2}px;
-        color: ${color7};
-        margin-bottom: ${spacing / 2}px;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-      }
-      
-      .discount-code-value {
-        font-size: ${fontSize * 1.8}px;
-        font-weight: 800;
-        color: ${color4};
-        font-family: 'Courier New', monospace;
-        letter-spacing: 2px;
-      }
-      
       .action-buttons {
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -840,7 +804,6 @@ class SalesFunnelEnhancedElement extends HTMLElement {
         color: ${color6};
       }
       
-      /* ========== ANIMATIONS ========== */
       @keyframes fadeInDown {
         from {
           opacity: 0;
@@ -878,7 +841,6 @@ class SalesFunnelEnhancedElement extends HTMLElement {
         20%, 40%, 60%, 80% { transform: translateX(5px); }
       }
       
-      /* ========== RESPONSIVE ========== */
       @media (max-width: 768px) {
         .product-content {
           grid-template-columns: 1fr;
@@ -1121,22 +1083,13 @@ class SalesFunnelEnhancedElement extends HTMLElement {
   }
 
   renderUpsellStep() {
-    console.log('🎁 Rendering upsell step');
-    console.log('   Current step:', this.currentStep);
-    console.log('   Funnel type:', this.styleProps.dropdown2);
-    
     const stepNumber = parseInt(this.currentStep.replace('upsell', '')) - 1;
-    console.log('   Accessing index:', stepNumber);
-    
     const upsellProduct = this.upsellProducts[stepNumber];
     
     if (!upsellProduct) {
-      console.log('❌ No product at index', stepNumber, '- completing upsells');
       this.completeUpsells();
       return;
     }
-    
-    console.log('✅ Rendering upsell product:', upsellProduct.name);
 
     const hasDiscount = upsellProduct.priceData?.formatted?.discountedPrice && 
                         upsellProduct.priceData?.formatted?.discountedPrice !== upsellProduct.priceData?.formatted?.price;
@@ -1144,10 +1097,9 @@ class SalesFunnelEnhancedElement extends HTMLElement {
       this.calculateDiscount(upsellProduct.priceData?.formatted?.price, upsellProduct.priceData?.formatted?.discountedPrice) : 0;
 
     const imageUrl = upsellProduct.media?.mainMedia?.image?.url || '';
-    const funnelType = this.styleProps.dropdown2 || 'standard';
-
-    // Get discount code for this upsell if it exists
-    const discountCodeData = this.discountCodes[`upsell${stepNumber + 1}`];
+    
+    // Get coupon code for this upsell
+    const couponCode = this.couponCodes[`upsell${stepNumber + 1}`] || '';
 
     this.innerHTML = `
       <style>${this.getStyles()}</style>
@@ -1185,17 +1137,17 @@ class SalesFunnelEnhancedElement extends HTMLElement {
               </div>
             </div>
             
-            ${funnelType === 'discount-unlock' && discountCodeData ? `
-              <div class="discount-unlock-section">
-                <div class="discount-unlock-title">🎁 Unlock Exclusive Discount Code!</div>
+            ${couponCode ? `
+              <div class="coupon-unlock-section">
+                <div class="coupon-unlock-title">🎁 Unlock Exclusive Coupon Code!</div>
                 <p style="color: ${this.styleProps.color7}; margin: ${this.styleProps.slider2}px 0;">
-                  Add this product and get <strong>${discountCodeData.discount}</strong> off your entire order!
+                  Add this product and unlock a special discount for your entire order!
                 </p>
-                <div class="discount-code-display">
-                  <div class="discount-code-label">Your Code:</div>
-                  <div class="discount-code-value">${discountCodeData.code}</div>
+                <div class="coupon-code-display">
+                  <div class="coupon-code-label">Your Coupon Code:</div>
+                  <div class="coupon-code-value">${couponCode}</div>
                   <p style="color: ${this.styleProps.color7}; font-size: ${parseInt(this.styleProps.slider3) - 2}px; margin-top: ${this.styleProps.slider2}px;">
-                    Code will be automatically applied at checkout
+                    Copy this code and apply it at checkout
                   </p>
                 </div>
               </div>
@@ -1236,7 +1188,6 @@ class SalesFunnelEnhancedElement extends HTMLElement {
   }
 
   attachProductListeners() {
-    // Thumbnails
     this.querySelectorAll('.thumbnail').forEach(thumb => {
       thumb.addEventListener('click', () => {
         const index = parseInt(thumb.dataset.thumbnail);
@@ -1244,7 +1195,6 @@ class SalesFunnelEnhancedElement extends HTMLElement {
       });
     });
 
-    // Color swatches
     this.querySelectorAll('.color-swatch').forEach(swatch => {
       swatch.addEventListener('click', (e) => {
         const option = e.target.dataset.option;
@@ -1261,7 +1211,6 @@ class SalesFunnelEnhancedElement extends HTMLElement {
       });
     });
 
-    // Size buttons
     this.querySelectorAll('.size-button').forEach(btn => {
       btn.addEventListener('click', (e) => {
         const option = e.target.dataset.option;
@@ -1278,7 +1227,6 @@ class SalesFunnelEnhancedElement extends HTMLElement {
       });
     });
 
-    // Dropdowns
     this.querySelectorAll('.dropdown-select').forEach(select => {
       select.addEventListener('change', (e) => {
         const option = e.target.dataset.option;
@@ -1294,7 +1242,6 @@ class SalesFunnelEnhancedElement extends HTMLElement {
       });
     });
 
-    // Quantity
     this.querySelectorAll('.quantity-btn').forEach(btn => {
       btn.addEventListener('click', (e) => {
         const action = e.target.dataset.action;
@@ -1315,7 +1262,6 @@ class SalesFunnelEnhancedElement extends HTMLElement {
       });
     });
 
-    // CTA Button
     const ctaButton = this.querySelector('.cta-button');
     if (ctaButton) {
       ctaButton.addEventListener('click', () => {
@@ -1336,74 +1282,44 @@ class SalesFunnelEnhancedElement extends HTMLElement {
     const acceptBtn = this.querySelector('[data-upsell-action="accept"]');
     const declineBtn = this.querySelector('[data-upsell-action="decline"]');
 
-    console.log('🔗 Attaching upsell listeners');
-    console.log('   Accept button found:', !!acceptBtn);
-    console.log('   Decline button found:', !!declineBtn);
-
     if (acceptBtn) {
       acceptBtn.addEventListener('click', () => {
-        console.log('🎯 Accept button clicked!');
-        console.log('   Current step:', this.currentStep);
-        
         const stepNumber = parseInt(this.currentStep.replace('upsell', '')) - 1;
         const upsellProduct = this.upsellProducts[stepNumber];
-        
-        console.log('   Step number:', stepNumber);
-        console.log('   Upsell product:', upsellProduct?.name);
-        console.log('   Product ID:', upsellProduct?._id);
+        const couponCode = this.couponCodes[`upsell${stepNumber + 1}`] || '';
         
         this.acceptedUpsells.push(upsellProduct._id);
         
-        // Check if this upsell has a discount code
-        const discountCodeData = this.discountCodes[`upsell${stepNumber + 1}`];
-        
-        console.log('   Dispatching acceptUpsell event...');
         this.dispatchEvent(new CustomEvent('acceptUpsell', {
           detail: {
             productId: upsellProduct._id,
             quantity: 1,
-            discountCode: discountCodeData ? discountCodeData.code : null
+            couponCode: couponCode
           }
         }));
-        console.log('   ✅ Event dispatched');
       });
-    } else {
-      console.error('❌ Accept button not found!');
     }
 
     if (declineBtn) {
       declineBtn.addEventListener('click', () => {
-        console.log('🚫 Decline button clicked!');
         this.nextStep();
       });
-    } else {
-      console.error('❌ Decline button not found!');
     }
   }
 
   nextStep() {
-    console.log('🔄 NextStep called');
-    console.log('   Current step:', this.currentStep);
-    console.log('   Total upsell products:', this.upsellProducts.length);
-    
     const currentUpsellNum = parseInt(this.currentStep.replace('upsell', '') || '0');
     const nextUpsellNum = currentUpsellNum + 1;
     
-    console.log('   Current upsell num:', currentUpsellNum);
-    console.log('   Next upsell num:', nextUpsellNum);
-    
     if (nextUpsellNum <= this.upsellProducts.length) {
-      console.log('   ✅ Moving to upsell', nextUpsellNum);
       this.currentStep = `upsell${nextUpsellNum}`;
       this.render();
     } else {
-      console.log('   ✅ No more upsells, completing funnel');
       this.completeUpsells();
     }
   }
 
   completeUpsells() {
-    console.log('✅ Funnel complete! Redirecting to cart...');
     this.dispatchEvent(new CustomEvent('funnelComplete', {
       detail: {
         acceptedUpsells: this.acceptedUpsells
@@ -1462,18 +1378,13 @@ class SalesFunnelEnhancedElement extends HTMLElement {
   }
 
   startUpsells() {
-    console.log('🚀 Starting upsell sequence');
-    console.log('   Upsell products available:', this.upsellProducts.length);
-    
     if (this.upsellProducts.length > 0) {
-      console.log('   ✅ Starting with upsell1');
       this.currentStep = 'upsell1';
       this.render();
     } else {
-      console.log('   ⚠️ No upsell products, completing funnel');
       this.completeUpsells();
     }
   }
 }
 
-customElements.define('sales-funnel-enhanced-element', SalesFunnelEnhancedElement);
+customElements.define('sales-funnel-coupon-element', SalesFunnelCouponElement);
