@@ -111,14 +111,17 @@ class SalesFunnelElement extends HTMLElement {
       
       // Only process if oldVal is different (first time set, not the removal)
       if (oldVal !== newVal) {
-        console.log('🎬 Funnel action received:', newVal);
+        // Parse the action type (remove timestamp if present)
+        const actionType = newVal.split('-').slice(0, -1).join('-') || newVal;
+        
+        console.log('🎬 Funnel action received:', actionType);
         console.log('   Current step before action:', this.currentStep);
         console.log('   Upsell products available:', this.upsellProducts?.length || 0);
         
-        if (newVal === 'start-upsells') {
+        if (actionType === 'start-upsells') {
           console.log('   → Calling startUpsells()');
           this.startUpsells();
-        } else if (newVal === 'next-step') {
+        } else if (actionType === 'next-step') {
           console.log('   → Calling nextStep()');
           this.nextStep();
         }
