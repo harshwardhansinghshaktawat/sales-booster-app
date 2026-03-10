@@ -64,7 +64,7 @@ class SalesFunnelElement extends HTMLElement {
   }
 
   static get observedAttributes() {
-    return ['product-data', 'upsell-data', 'style-props'];
+    return ['product-data', 'upsell-data', 'style-props', 'funnel-action'];
   }
 
   attributeChangedCallback(name, oldVal, newVal) {
@@ -98,6 +98,21 @@ class SalesFunnelElement extends HTMLElement {
       } catch (error) {
         console.error('Error parsing style props:', error);
       }
+    }
+    
+    if (name === 'funnel-action' && newVal && newVal !== oldVal) {
+      console.log('🎬 Funnel action received:', newVal);
+      
+      if (newVal === 'start-upsells') {
+        this.startUpsells();
+      } else if (newVal === 'next-step') {
+        this.nextStep();
+      }
+      
+      // Clear the attribute after processing
+      setTimeout(() => {
+        this.removeAttribute('funnel-action');
+      }, 100);
     }
   }
 
