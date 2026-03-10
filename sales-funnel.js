@@ -1271,26 +1271,44 @@ class SalesFunnelElement extends HTMLElement {
     const acceptBtn = this.querySelector('[data-upsell-action="accept"]');
     const declineBtn = this.querySelector('[data-upsell-action="decline"]');
 
+    console.log('🔗 Attaching upsell listeners');
+    console.log('   Accept button found:', !!acceptBtn);
+    console.log('   Decline button found:', !!declineBtn);
+
     if (acceptBtn) {
       acceptBtn.addEventListener('click', () => {
+        console.log('🎯 Accept button clicked!');
+        console.log('   Current step:', this.currentStep);
+        
         const stepNumber = parseInt(this.currentStep.replace('upsell', '')) - 1;
         const upsellProduct = this.upsellProducts[stepNumber];
         
+        console.log('   Step number:', stepNumber);
+        console.log('   Upsell product:', upsellProduct?.name);
+        console.log('   Product ID:', upsellProduct?._id);
+        
         this.acceptedUpsells.push(upsellProduct._id);
         
+        console.log('   Dispatching acceptUpsell event...');
         this.dispatchEvent(new CustomEvent('acceptUpsell', {
           detail: {
             productId: upsellProduct._id,
             quantity: 1
           }
         }));
+        console.log('   ✅ Event dispatched');
       });
+    } else {
+      console.error('❌ Accept button not found!');
     }
 
     if (declineBtn) {
       declineBtn.addEventListener('click', () => {
+        console.log('🚫 Decline button clicked!');
         this.nextStep();
       });
+    } else {
+      console.error('❌ Decline button not found!');
     }
   }
 
